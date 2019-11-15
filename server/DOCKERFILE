@@ -1,0 +1,45 @@
+FROM ubuntu:18.04
+
+LABEL maintainer="Coen van den Munckhof" \
+  org.label-schema.name="Server" \
+  org.label-schema.description="SSH Rsync backup server for Synology NAS" \
+  org.label-schema.url="https://github.com/coenm/Synology" \
+  org.label-schema.vcs-url="https://github.com/coenm/Synology" \
+  org.label-schema.vendor="CoenM" \
+  org.label-schema.schema-version="1.0"
+
+
+ENV REFRESHED_AT 2019-11-08
+ENV SSH_USERNAME dockerbackup
+
+RUN apt-get -yqq update && \
+    apt-get -yqq install openssh-server && \
+    apt-get -yqq install rsync 
+
+RUN mkdir /var/run/sshd
+
+ADD sshd/fixed_sshd_config /etc/ssh/sshd_config
+
+# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
+RUN groupadd -r -g 2999 ${SSH_USERNAME} && \
+    useradd -ms /bin/bash -r -g ${SSH_USERNAME} -u 2999 ${SSH_USERNAME}
+# https://stackoverflow.com/questions/27701930/add-user-to-docker-container
+
+ENV BACKUP_DESTINATION /backup
+RUN mkdir -p /backup && \
+    chown ${SSH_USERNAME}:${SSH_USERNAME} /backup
+VOLUME [ "/backup" ]
+
+VOLUME [ "/tmp/.ssh/" ]
+
+# https://stackoverflow.com/questions/36292317/why-set-visible-now-in-etc-profile
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
+# https://nickjanetakis.com/blog/docker-tip-56-volume-mounting-ssh-keys-into-a-docker-container
+COPY entrypoint.sh /bin/docker-entrypoint.sh
+RUN chmod +x /bin/docker-entrypoint.sh 
+
+EXPOSE 22
+ENTRYPOINT ["/bin/docker-entrypoint.sh"]
+CMD ["/usr/sbin/sshd", "-D"]
