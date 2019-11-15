@@ -153,7 +153,7 @@ else
 fi
 
 # Backup directory. Must be absolute path. Directory must exists and the executing user of the script should have read rights.
-BACKUP_SOURCE_DIR=/source	
+BACKUP_SOURCE_DIR=/source/
 
 ## Create the destination path (also the escaped variant)
 DESTINATION_DIR=${BACKUP_DIR}/${BACKUP_NAME}
