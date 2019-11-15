@@ -3,8 +3,8 @@ FROM ubuntu:18.04
 LABEL maintainer="Coen van den Munckhof" \
   org.label-schema.name="Server" \
   org.label-schema.description="SSH Rsync backup server for Synology NAS" \
-  org.label-schema.url="https://github.com/coenm/Synology" \
-  org.label-schema.vcs-url="https://github.com/coenm/Synology" \
+  org.label-schema.url="https://github.com/coenm/Backup" \
+  org.label-schema.vcs-url="https://github.com/coenm/Backup" \
   org.label-schema.vendor="CoenM" \
   org.label-schema.schema-version="1.0"
 
@@ -18,7 +18,7 @@ RUN apt-get -yqq update && \
 
 RUN mkdir /var/run/sshd
 
-ADD sshd/fixed_sshd_config /etc/ssh/sshd_config
+ADD fixed_sshd_config /etc/ssh/sshd_config
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r -g 2999 ${SSH_USERNAME} && \

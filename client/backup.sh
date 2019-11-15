@@ -77,11 +77,6 @@ print_help()
 # . Normally SSH runs on port 22 but this property allows others.
 }
 
-CONFIG_LOG_DIR_BUSY=/logs/busy
-CONFIG_LOG_DIR_FINISHED=/logs
-
-mkdir -p $CONFIG_LOG_DIR_BUSY
-mkdir -p $CONFIG_LOG_DIR_FINISHED
 
 # https://stackoverflow.com/questions/9612090/how-to-loop-through-file-names-returned-by-find
 # find /config -name "exclude_*.config"
@@ -172,13 +167,6 @@ echo "-- DESTINATION_DIR_ESCAPED: ${DESTINATION_DIR_ESCAPED}"
 # Misc
 #***************************************************************
 
-# Construct logfiles
-LOG_FILE=${DATETIME_START}_${opt_d}_${opt_s}.log
-LOG_FILE_BUSY=${CONFIG_LOG_DIR_BUSY}/${LOG_FILE}
-LOG_FILE_FINISHED=${CONFIG_LOG_DIR_FINISHED}/${LOG_FILE}
-LOG_FILE=
-
-
 #Check if source exists
 if [ ! -d "$BACKUP_SOURCE_DIR" ]; then
 	print_header
@@ -190,7 +178,7 @@ fi
 #***************************************************************
 # Run the real backup
 #***************************************************************
-echo Started at $DATETIME_START using backupscript $VERSION >> ${LOG_FILE_BUSY}
+echo Started at $DATETIME_START using backupscript $VERSION
 
 echo "-- DO_REMOTE: ${DO_REMOTE}"
 echo "-- opt_cap_h: ${opt_cap_h}"
@@ -231,10 +219,10 @@ if [ $DO_REMOTE -eq 1 ]; then
 	SSH_KEY='-i '${DEST_KEYFILE}		
 	echo "-- SSH_KEY: ${SSH_KEY}"
 			
-	echo Start remote backup >> ${LOG_FILE_BUSY}
-	echo >> ${LOG_FILE_BUSY}
+	echo Start remote backup
+	echo
 
-	echo Create working dir for backup >> ${LOG_FILE_BUSY}
+	echo Create working dir for backup
 	
 	# Remote username. This user should exist on the remote machine, should have SSH access with public key authorization enabled.
 	DEST_USER=$SSH_USERNAME
@@ -247,11 +235,11 @@ if [ $DO_REMOTE -eq 1 ]; then
 		"-o StrictHostKeyChecking=false " $SSH_PORT $SSH_KEY ${DEST_USER}@${DEST_HOST} \
 		"mkdir -p \"$DESTINATION_DIR/incomplete/\" && mkdir -p \"$DESTINATION_DIR/partial/\""
 
-	echo >> ${LOG_FILE_BUSY}
+	echo
 	
-	echo Start RSync >> ${LOG_FILE_BUSY}
-	echo >> ${LOG_FILE_BUSY}
-	echo DESTINATION_DIR_ESCAPED: ${DESTINATION_DIR_ESCAPED} >> ${LOG_FILE_BUSY}
+	echo Start RSync
+	echo
+	echo DESTINATION_DIR_ESCAPED: ${DESTINATION_DIR_ESCAPED}
 	
 	rsync \
 		$RSYNC_MODE_CHECKSUM \
@@ -263,13 +251,13 @@ if [ $DO_REMOTE -eq 1 ]; then
 		-e 'ssh -o StrictHostKeyChecking=false -p '${DEST_PORT}' -i'${DEST_KEYFILE} \
 		--link-dest="${DESTINATION_DIR_ESCAPED}/current"  \
 		"${BACKUP_SOURCE_DIR}" \
-		${DEST_USER}@${DEST_HOST}:"${DESTINATION_DIR_ESCAPED}/incomplete/" >> ${LOG_FILE_BUSY} 2>&1
+		${DEST_USER}@${DEST_HOST}:"${DESTINATION_DIR_ESCAPED}/incomplete/" 2>&1
 		
 		
-	echo >> ${LOG_FILE_BUSY}
+	echo
 	
-	echo wrapping up... >> ${LOG_FILE_BUSY}
-	echo >> ${LOG_FILE_BUSY}
+	echo wrapping up...
+	echo
 	
 	ssh \
 		"-o StrictHostKeyChecking=false " $SSH_PORT $SSH_KEY ${DEST_USER}@${DEST_HOST} \
@@ -280,10 +268,10 @@ if [ $DO_REMOTE -eq 1 ]; then
 	
 else
 
-	echo start local backup >> ${LOG_FILE_BUSY}
-	echo >> ${LOG_FILE_BUSY}
+	echo start local backup
+	echo
 	
-	echo Create working dir for backup >> ${LOG_FILE_BUSY}
+	echo Create working dir for backup
 	
 	mkdir -p "${DESTINATION_DIR}/current"
 	mkdir -p "${DESTINATION_DIR}/incomplete/"
@@ -291,8 +279,8 @@ else
 
 	echo
 
-	echo Start RSync >> ${LOG_FILE_BUSY}
-	echo >> ${LOG_FILE_BUSY}
+	echo Start RSync
+	echo
 	
 	rsync \
 		$RSYNC_MODE_CHECKSUM \
@@ -303,13 +291,13 @@ else
 		${RSYNC_EXCLUDES} \
 		--link-dest="${DESTINATION_DIR}/current" \
 		"${BACKUP_SOURCE_DIR}" \
-		"${DESTINATION_DIR}/incomplete/" >> ${LOG_FILE_BUSY} 2>&1
+		"${DESTINATION_DIR}/incomplete/" 2>&1
 
 		
-	echo >> ${LOG_FILE_BUSY}
+	echo
 	
-	echo wrapping up... >> ${LOG_FILE_BUSY}
-	echo >> ${LOG_FILE_BUSY}
+	echo wrapping up...
+	echo
 	cd "${DESTINATION_DIR}"
 
 	mv incomplete/ ${DATETIME_START}/ 
@@ -322,9 +310,7 @@ fi
 # .. and we are done...
 DATETIME_FINISHED="$(date +"%Y.%m.%d-%H.%M.%S")"
 
-echo Finished at $DATETIME_FINISHED >> ${LOG_FILE_BUSY}
+echo Finished at $DATETIME_FINISHED
 echo Backup finished
-
-mv ${LOG_FILE_BUSY} ${LOG_FILE_FINISHED}
 
 exit 
