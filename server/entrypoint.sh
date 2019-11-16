@@ -32,7 +32,7 @@ fi
 
 
 userdel -f -r ${SSH_USERNAME}
-groupadd -f -r -g ${GID} ${SSH_USERNAME}
+groupadd -f -g ${GID} ${SSH_USERNAME}
 useradd -ms /bin/bash -r -g ${SSH_USERNAME} -u ${UID} ${SSH_USERNAME}
 
 if [[ ! -d "/home/${SSH_USERNAME}/" ]]; then
