@@ -30,11 +30,11 @@ if [[ -z ${BACKUP_DESTINATION} ]]; then
 fi
 
 
-
+GROUP_NAME=users
 userdel -f -r ${SSH_USERNAME}
 #groupadd -f -g ${GID} ${SSH_USERNAME}
 #useradd -ms /bin/bash -r -g ${SSH_USERNAME} -u ${UID} ${SSH_USE#RNAME}
-useradd -ms /bin/bash -r -g users -u ${UID} ${SSH_USERNAME}
+useradd -ms /bin/bash -r -g ${GROUP_NAME} -u ${UID} ${SSH_USERNAME}
 
 if [[ ! -d "/home/${SSH_USERNAME}/" ]]; then
     echo home directory /home/${SSH_USERNAME}/ does not exist!
@@ -47,7 +47,7 @@ fi
 mkdir -p /home/${SSH_USERNAME}/.ssh
 cp /tmp/.ssh/authorized_keys /home/${SSH_USERNAME}/.ssh/
 
-chown -R ${SSH_USERNAME}:${SSH_USERNAME} /home/${SSH_USERNAME}/.ssh
+chown -R ${SSH_USERNAME}:${GROUP_NAME} /home/${SSH_USERNAME}/.ssh
 chmod 700 /home/${SSH_USERNAME}/.ssh
 chmod 600 /home/${SSH_USERNAME}/.ssh/authorized_keys
 
