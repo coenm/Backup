@@ -30,10 +30,6 @@ VOLUME [ "/tmp/.ssh/" ]
 # Legacy: Contains configuration for backup.
 VOLUME [ "/config" ]
 
-# Read/Write permission
-# Legacy: Backup process writes logs to this folder.
-VOLUME [ "/logs" ]
-
 # https://nickjanetakis.com/blog/docker-tip-56-volume-mounting-ssh-keys-into-a-docker-container
 COPY ./backup.sh /bin/backup/backup.sh
 RUN chmod +x /bin/backup/backup.sh 
