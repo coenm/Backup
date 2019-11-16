@@ -32,8 +32,9 @@ fi
 
 
 userdel -f -r ${SSH_USERNAME}
-groupadd -f -g ${GID} ${SSH_USERNAME}
-useradd -ms /bin/bash -r -g ${SSH_USERNAME} -u ${UID} ${SSH_USERNAME}
+#groupadd -f -g ${GID} ${SSH_USERNAME}
+#useradd -ms /bin/bash -r -g ${SSH_USERNAME} -u ${UID} ${SSH_USE#RNAME}
+useradd -ms /bin/bash -r -g users -u ${UID} ${SSH_USERNAME}
 
 if [[ ! -d "/home/${SSH_USERNAME}/" ]]; then
     echo home directory /home/${SSH_USERNAME}/ does not exist!
