@@ -9,6 +9,7 @@ VERSION="2019.11.11"
 DATETIME_START="$(date +"%Y.%m.%d-%H.%M.%S")"
 
 RSYNC_DEFAULT_OPTIONS='--hard-links --delete --delete-excluded --archive --chmod=oga-w'
+RSYNC_DEFAULT_OPTIONS_REMOTE='--hard-links --delete --delete-excluded --archive --no-owner --no-group --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r'
 
 # Get absolute path this script is in and use this path as a base for all other (relatve) filenames.
 # !! Please make sure there are no spaces inside the path !!
@@ -246,7 +247,7 @@ if [ $DO_REMOTE -eq 1 ]; then
 		$RSYNC_MODE_VERBOSE \
 		$RSYNC_MODE_PROGRESS \
 		$RSYNC_MODE_QUIET \
-		${RSYNC_DEFAULT_OPTIONS} \
+		${RSYNC_DEFAULT_OPTIONS_REMOTE} \
 		${RSYNC_EXCLUDES} \
 		-e 'ssh -o StrictHostKeyChecking=false -p '${DEST_PORT}' -i'${DEST_KEYFILE} \
 		--link-dest="${DESTINATION_DIR_ESCAPED}/current"  \
