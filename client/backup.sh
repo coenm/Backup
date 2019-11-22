@@ -4,7 +4,7 @@
 
 
 #***************************************************************
-VERSION="2019.11.11"
+VERSION="2019.11.22"
 
 DATETIME_START="$(date +"%Y.%m.%d-%H.%M.%S")"
 
@@ -44,7 +44,7 @@ print_help()
 {
 	echo "Usage:																	"
 	echo "																			"
-	echo "	$0 -n name [-H <host> -I <identity file> [-P <port>]] [-c -p -v -q -h]	"
+	echo "	$0 -n name [-H <host> [-I <identity file>] [-P <port>]] [-c -p -v -q -h]"
 	echo "																			"
 	echo "	-h = Help																"
 	echo "       List this help menu												"
@@ -65,17 +65,23 @@ print_help()
 	echo "       Run rsync command with -q switch to suppress all output			"
 	echo "       except errors														"
 	echo "																			"
-	echo "	-H = Host name (for remote backup)										"
+	echo "																			"
+	echo "	== REMOTE BACKUP ==														"
+	echo "																			"
+	echo "	-H = Host name (required for remote)                                    "
 	echo "       Hostname of remote machine. Can be IP4 or hostname.		     	"
 	echo "																			"
-	echo "	-P = SSH Port (for remote backup)										"
-	echo "       Destination SSH port of the remote machine (default 22).	     	"
+	echo "	-P = SSH Port (optional, default 22)									"
+	echo "       Destination SSH port of the remote machine.             	     	"
 	echo "																			"
-	echo "	-I = Identity file (for remote backup)									"
+	echo "	-I = Identity file (optional, relative to path /tmp/.ssh/ ) 			"
 	echo "       RSA or EC private key.                                  	     	"
+	echo "       When not given, or file not found,                                 "
+	echo "       - '/tmp/.ssh/ed_25519',                                            "
+	echo "       - '/tmp/.ssh/id_rsa'                                               "
+	echo "       will be used when available                                        "
 	echo "																			"
 	echo "----------------------------------------------------------------------------"
-# . Normally SSH runs on port 22 but this property allows others.
 }
 
 
@@ -182,9 +188,8 @@ fi
 echo Started at $DATETIME_START using backupscript $VERSION
 
 echo "-- DO_REMOTE: ${DO_REMOTE}"
-echo "-- opt_cap_h: ${opt_cap_h}"
-echo "-- opt_cap_p: ${opt_cap_p}"
-echo "-- opt_cap_i: ${opt_cap_i}"
+echo "-- HOST: ${opt_cap_h}"
+echo "-- PORT: ${opt_cap_p}"
 
 if [ $DO_REMOTE -eq 1 ]; then
 
@@ -193,17 +198,18 @@ if [ $DO_REMOTE -eq 1 ]; then
 	DEST_PORT=${opt_cap_p}
 	SSH_PORT='-p '$DEST_PORT	
 
-	# Check if private key file exists. If not -> quit backup.
-	DEST_KEYFILE=${opt_cap_i}
-	if [ -z $DEST_KEYFILE ]; then
-		echo [ERROR] Private key not set.
+	if [[ ! -z ${opt_cap_i} && -f /tmp/.ssh/${opt_cap_i} ]]; then
+		DEST_KEYFILE=/tmp/.ssh/${opt_cap_i}
+		echo "Using key set by -I argument: ${DEST_KEYFILE}"
+	elif [ -f /tmp/.ssh/id_ed25519 ]; then
+		DEST_KEYFILE=/tmp/.ssh/id_ed25519
+		echo "Using key: ${DEST_KEYFILE}"
+	elif [ -f /tmp/.ssh/id_rsa ]; then
+		DEST_KEYFILE=/tmp/.ssh/id_rsa
+		echo "Using key: ${DEST_KEYFILE}"
+	else
 		echo
-		print_help
-		exit 1
-	fi
-	
-	if [ ! -f ${DEST_KEYFILE} ]; then
-		echo [ERROR] Cannot backup to remote because the private key ${DEST_KEYFILE} does not exist.
+		echo [ERROR] No privet key found.
 		echo
 		print_help
 		exit 1
@@ -212,13 +218,12 @@ if [ $DO_REMOTE -eq 1 ]; then
     # copy the private key to other directory
 	# make sure the permissions are okay and use that key.
 	mkdir -p /root/backupscript/
-	cp ${DEST_KEYFILE} root/backupscript/id_ed25519
-	DEST_KEYFILE=root/backupscript/id_ed25519
+	cp ${DEST_KEYFILE} root/backupscript/private_key
+	DEST_KEYFILE=root/backupscript/private_key
 	chown root:root ${DEST_KEYFILE}
 	chmod 600 ${DEST_KEYFILE}
    
 	SSH_KEY='-i '${DEST_KEYFILE}		
-	echo "-- SSH_KEY: ${SSH_KEY}"
 			
 	echo Start remote backup
 	echo
@@ -228,9 +233,6 @@ if [ $DO_REMOTE -eq 1 ]; then
 	# Remote username. This user should exist on the remote machine, should have SSH access with public key authorization enabled.
 	DEST_USER=$SSH_USERNAME
 
-	echo "-- SSH_PORT: ${SSH_PORT}"
-	echo "-- DEST_USER: ${DEST_USER}"
-	echo "-- DEST_HOST: ${DEST_HOST}"
 
 	ssh \
 		"-o StrictHostKeyChecking=false " $SSH_PORT $SSH_KEY ${DEST_USER}@${DEST_HOST} \

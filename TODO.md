@@ -1,10 +1,8 @@
 # TODO
 
-- user and group in backup
-- Output to console instead of file?
+- user and group in backup.
 - Docker compose;
-- run as user, not root;
-- docker compose?
+- run as user, not root.
 
 ## Client
 

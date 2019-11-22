@@ -8,4 +8,6 @@
 
 # Synology DSM
 @eaDir/
-#recycle/ 
+
+# the synology directory #recycle starts with an #, therefore, it is excluded using the - prefix.
+- #recycle/ 
