@@ -315,5 +315,3 @@ DATETIME_FINISHED="$(date +"%Y.%m.%d-%H.%M.%S")"
 
 echo Finished at $DATETIME_FINISHED
 echo Backup finished
-
-exit 
